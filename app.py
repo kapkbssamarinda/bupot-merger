@@ -150,8 +150,25 @@ def extract_pdf_file(file_bytes_or_path, filename=""):
         }
 
 @app.route('/')
+@app.route('/api')
+@app.route('/api/index')
+@app.route('/api/index.py')
 def index():
     return render_template('index.html')
+
+class VercelPathMiddleware:
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        path = environ.get('PATH_INFO', '')
+        if path in ('/api/index.py', '/api/index', '/api', ''):
+            environ['PATH_INFO'] = '/'
+        elif path.startswith('/api/index.py/'):
+            environ['PATH_INFO'] = path[len('/api/index.py'):]
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
 
 @app.route('/api/extract-upload', methods=['POST'])
 def extract_from_upload():
