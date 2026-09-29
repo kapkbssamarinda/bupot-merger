@@ -156,15 +156,24 @@ def extract_pdf_file(file_bytes_or_path, filename=""):
 def index():
     return render_template('index.html')
 
+import urllib.parse
+
 class VercelPathMiddleware:
     def __init__(self, wsgi_app):
         self.wsgi_app = wsgi_app
 
     def __call__(self, environ, start_response):
-        # Vercel sends the real requested path in HTTP_X_MATCHED_PATH
-        matched_path = environ.get('HTTP_X_MATCHED_PATH')
-        if matched_path:
-            environ['PATH_INFO'] = matched_path
+        qs = environ.get('QUERY_STRING', '')
+        if '__route__' in qs:
+            params = urllib.parse.parse_qs(qs)
+            if '__route__' in params and params['__route__']:
+                route = params['__route__'][0]
+                if not route.startswith('/'):
+                    route = '/' + route
+                environ['PATH_INFO'] = route
+                # Bersihkan parameter __route__ dari QUERY_STRING
+                filtered = [(k, v) for k, vs in params.items() if k != '__route__' for v in vs]
+                environ['QUERY_STRING'] = urllib.parse.urlencode(filtered)
         else:
             path = environ.get('PATH_INFO', '')
             if path in ('/api/index.py', '/api/index', '/api', ''):
