@@ -9,7 +9,11 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-app = Flask(__name__, template_folder=os.path.join(BASE_DIR, 'templates'))
+template_dir = os.path.join(BASE_DIR, 'templates')
+if not os.path.isdir(template_dir):
+    template_dir = os.path.join(os.path.dirname(BASE_DIR), 'templates')
+
+app = Flask(__name__, template_folder=template_dir)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload
 
 def parse_bupot_text(text, source_name=""):
