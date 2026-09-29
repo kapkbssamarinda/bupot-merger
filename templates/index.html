@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BupotMerge - Merger & Ekstraksi Bukti Potong PPh Unifikasi</title>
+  <!-- Favicon SVG -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none'%3E%3Crect width='48' height='48' rx='12' fill='%230f766e'/%3E%3Cpath d='M14 13C14 11.8954 14.8954 11 16 11H29L35 17V33C35 34.1046 34.1046 35 33 35H16C14.8954 35 14 34.1046 14 33V13Z' fill='%2314b8a6' fill-opacity='0.45'/%3E%3Cpath d='M18 16C18 14.8954 18.8954 14 20 14H33L39 20V37C39 38.1046 38.1046 39 37 39H20C18.8954 39 18 38.1046 18 37V16Z' fill='%23ffffff'/%3E%3Cpath d='M33 14L39 20H35C33.8954 20 33 19.1046 33 18V14Z' fill='%23cbd5e1'/%3E%3Ccircle cx='34' cy='34' r='7' fill='%230d9488' stroke='%23ffffff' stroke-width='2'/%3E%3Cpath d='M31.5 34L33.2 35.7L36.8 32.2' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              200: '#99f6e4',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Financial Tabular Numbers */
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+    /* Elegant subtle custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    /* Focus styling */
+    :focus-visible {
+      outline: 2px solid #0f766e;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body class="bg-slate-50/80 text-slate-900 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-100 selection:text-brand-900">
+
+  <!-- Top Announcement Bar -->
+  <div class="bg-brand-900 text-white text-xs py-1.5 px-4 text-center font-medium tracking-wide flex items-center justify-center gap-2 border-b border-brand-800">
+    <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+    <span>Sistem Ekstraksi Bukti Potong PPh Unifikasi Format Standar DJP &bull; Ekspor Langsung ke Excel (.xlsx) dengan Rumus Otomatis</span>
+  </div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+      
+      <!-- Brand & Bespoke Logo -->
+      <div class="flex items-center space-x-3.5">
+        <div class="shrink-0 transition-transform hover:scale-105 duration-200">
+          <!-- Custom High-Precision SVG Logo -->
+          <svg width="42" height="42" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-xs">
+            <!-- Background Squircle -->
+            <rect width="48" height="48" rx="12" fill="#0f766e"/>
+            <!-- Back Layered Document -->
+            <path d="M14 13C14 11.8954 14.8954 11 16 11H29L35 17V33C35 34.1046 34.1046 35 33 35H16C14.8954 35 14 34.1046 14 33V13Z" fill="#14b8a6" fill-opacity="0.45"/>
+            <!-- Front Document Sheet with Crisp Edge -->
+            <path d="M18 16C18 14.8954 18.8954 14 20 14H33L39 20V37C39 38.1046 38.1046 39 37 39H20C18.8954 39 18 38.1046 18 37V16Z" fill="#ffffff" filter="drop-shadow(0px 2px 4px rgba(15, 23, 42, 0.12))"/>
+            <!-- Folded Corner Sheet -->
+            <path d="M33 14L39 20H35C33.8954 20 33 19.1046 33 18V14Z" fill="#cbd5e1"/>
+            <!-- Financial Rows Graphic Lines -->
+            <line x1="22" y1="23" x2="28" y2="23" stroke="#0f766e" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="22" y1="27" x2="33" y2="27" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="22" y1="31" x2="30" y2="31" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round"/>
+            <!-- Compliance Verification Seal & Checkmark -->
+            <circle cx="34" cy="34" r="7.5" fill="#0d9488" stroke="#ffffff" stroke-width="2"/>
+            <path d="M31.2 34.2L33.2 36.2L36.8 32.2" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-bold tracking-tight text-slate-900">Bupot<span class="text-brand-700">Merge</span></span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wider">
+              DJP UNIFIKASI
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Platform Konsolidasi & Ekstraksi Bukti Pemotongan Pajak</p>
+        </div>
+      </div>
+
+      <!-- Header Badges & Integrity Indicator -->
+      <div class="flex items-center space-x-3">
+        <div class="hidden md:flex items-center space-x-2 text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+          </svg>
+          <span class="font-medium">100% Pemrosesan Privat & Aman</span>
+        </div>
+
+        <button
+          type="button"
+          onclick="document.getElementById('fileInput').click()"
+          class="inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-md text-white bg-brand-700 hover:bg-brand-800 transition-colors shadow-xs"
+        >
+          <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Tambah Dokumen PDF
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Feature Highlights Strip -->
+  <section class="border-b border-slate-200 bg-white py-3.5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+        <div class="flex items-center space-x-2.5 p-2 rounded-md bg-slate-50 border border-slate-100">
+          <div class="w-7 h-7 rounded bg-brand-50 text-brand-700 flex items-center justify-center shrink-0 font-bold">15</div>
+          <div>
+            <div class="font-semibold text-slate-800">15 Kolom Standar</div>
+            <div class="text-[11px] text-slate-500">Lengkap dari Nomor s/d Pemotong</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2.5 p-2 rounded-md bg-slate-50 border border-slate-100">
+          <div class="w-7 h-7 rounded bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="font-semibold text-slate-800">Formula SUM Excel</div>
+            <div class="text-[11px] text-slate-500">Rumus total DPP & PPh aktif</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2.5 p-2 rounded-md bg-slate-50 border border-slate-100">
+          <div class="w-7 h-7 rounded bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="font-semibold text-slate-800">Format NPWP Aman</div>
+            <div class="text-[11px] text-slate-500">Preservasi digit nol awal (Teks)</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2.5 p-2 rounded-md bg-slate-50 border border-slate-100">
+          <div class="w-7 h-7 rounded bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+          </div>
+          <div>
+            <div class="font-semibold text-slate-800">Multi-File Batch</div>
+            <div class="text-[11px] text-slate-500">Ekstraksi puluhan berkas seketika</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Workstation Layout -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+
+    <!-- Top Two-Column Grid: Upload Station & Tax Reference Panel -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- Left Column: Upload Workstation (7 Cols) -->
+      <div class="lg:col-span-7 space-y-4">
+        
+        <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-xs relative overflow-hidden">
+          
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span>Unggah Dokumen Bukti Potong</span>
+                <span class="text-[11px] font-normal px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                  Format .PDF
+                </span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">Tarik dan lepas berkas PDF bukti pemotongan unifikasi DJP ke area berikut.</p>
+            </div>
+            
+            <button
+              type="button"
+              onclick="document.getElementById('fileInput').click()"
+              class="inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-lg text-white bg-brand-700 hover:bg-brand-800 transition-colors shadow-xs"
+            >
+              <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+              </svg>
+              Pilih Berkas PDF
+            </button>
+          </div>
+
+          <!-- Drag & Drop Zone -->
+          <div
+            id="dropZone"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event)"
+            class="mt-4 border-2 border-dashed border-slate-300 hover:border-brand-600 rounded-xl p-8 text-center cursor-pointer transition-all bg-slate-50/60 hover:bg-brand-50/30 group"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            <input type="file" id="fileInput" multiple accept=".pdf" class="hidden" onchange="handleFileSelect(event)">
+            
+            <!-- Graphic Illustration -->
+            <div class="w-14 h-14 rounded-2xl bg-white border border-slate-200 shadow-xs flex items-center justify-center text-brand-700 mx-auto group-hover:scale-110 group-hover:border-brand-300 transition-all duration-200">
+              <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+
+            <div class="mt-3.5 space-y-1">
+              <div class="text-sm font-semibold text-slate-800">
+                <span class="text-brand-700 group-hover:underline">Klik untuk memilih dokumen</span> atau seret file PDF ke sini
+              </div>
+              <p class="text-xs text-slate-500">Mendukung multi-file batch upload (Ukuran maksimal per batch 50 MB)</p>
+            </div>
+
+            <!-- Supported Tax Types Chips -->
+            <div class="mt-4 pt-3 border-t border-slate-200/60 flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-slate-600">
+              <span class="text-slate-400 font-medium mr-1">Mendukung:</span>
+              <span class="px-2 py-0.5 rounded bg-white border border-slate-200 font-medium">PPh Pasal 22</span>
+              <span class="px-2 py-0.5 rounded bg-white border border-slate-200 font-medium">PPh Pasal 23</span>
+              <span class="px-2 py-0.5 rounded bg-white border border-slate-200 font-medium">PPh Pasal 4(2) Final</span>
+              <span class="px-2 py-0.5 rounded bg-white border border-slate-200 font-medium">PPh Pasal 15 / 26</span>
+            </div>
+          </div>
+
+          <!-- Loading & Progress Banner -->
+          <div id="loadingBanner" class="hidden mt-4 p-4 rounded-lg bg-brand-50 border border-brand-200 text-brand-900 transition-all">
+            <div class="flex items-center space-x-3">
+              <svg class="animate-spin h-5 w-5 text-brand-700 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+              <div class="flex-1">
+                <div class="text-xs font-semibold text-brand-900" id="loadingText">Sedang mengekstrak data bukti potong...</div>
+                <div class="w-full bg-brand-200/70 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                  <div class="bg-brand-700 h-1.5 rounded-full animate-pulse w-3/4"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Alert Banner -->
+          <div id="errorBanner" class="hidden mt-4 p-4 rounded-lg bg-red-50 border border-red-200 text-red-900">
+            <div class="flex items-start">
+              <svg class="h-5 w-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              <div class="ml-3">
+                <h3 class="text-xs font-semibold text-red-800" id="errorTitle">Terjadi Kesalahan</h3>
+                <div class="text-xs text-red-700 mt-0.5" id="errorMessage"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Processed Files Queue / Live File Manager -->
+          <div id="fileQueueSection" class="hidden mt-4 pt-4 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Berkas Terunggah (<span id="queueCount">0</span>)</span>
+              <button type="button" onclick="clearData()" class="text-[11px] text-red-600 hover:text-red-800 font-medium">Kosongkan Berkas</button>
+            </div>
+            <div id="fileQueueList" class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+              <!-- Dynamically populated file rows -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Right Column: Information & Field Architecture Guide (5 Cols) -->
+      <div class="lg:col-span-5 space-y-4">
+        
+        <!-- Extracted 15 Columns Card -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+              <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+              </svg>
+              Struktur 15 Kolom Hasil Ekstraksi
+            </h3>
+            <span class="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded">
+              Lengkap
+            </span>
+          </div>
+
+          <div class="mt-3 space-y-2.5 text-xs">
+            <div>
+              <div class="text-[11px] font-semibold text-slate-500 mb-1">A. IDENTITAS BUKTI POTONG</div>
+              <div class="flex flex-wrap gap-1">
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">1. Nomor</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">2. Masa Pajak</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">3. Sifat Pajak</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">4. Status</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[11px] font-semibold text-slate-500 mb-1">B. OBJEK & PERHITUNGAN PAJAK</div>
+              <div class="flex flex-wrap gap-1">
+                <span class="px-2 py-0.5 rounded bg-brand-50 text-brand-800 border border-brand-200 text-[11px]">5. Jenis PPh</span>
+                <span class="px-2 py-0.5 rounded bg-brand-50 text-brand-800 border border-brand-200 text-[11px]">6. Kode Objek</span>
+                <span class="px-2 py-0.5 rounded bg-brand-50 text-brand-800 border border-brand-200 text-[11px]">7. Objek Pajak</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-[11px]">8. DPP (Rp)</span>
+                <span class="px-2 py-0.5 rounded bg-brand-50 text-brand-800 border border-brand-200 text-[11px]">9. Tarif (%)</span>
+                <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold text-[11px]">10. PPh (Rp)</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="text-[11px] font-semibold text-slate-500 mb-1">C. DOKUMEN DASAR & IDENTITAS PEMOTONG</div>
+              <div class="flex flex-wrap gap-1">
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">11. Tgl Dokumen</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">12. No Dokumen</span>
+                <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 font-mono text-[11px]">13. NPWP</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">14. Nama Pemotong</span>
+                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">15. Tgl Pemotongan</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3-Step Guided Workflow -->
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
+          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider pb-2.5 border-b border-slate-100 flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-brand-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+            Alur Kerja Konsolidasi
+          </h3>
+          <div class="mt-3 space-y-2.5 text-xs text-slate-600">
+            <div class="flex items-start space-x-2.5">
+              <div class="w-5 h-5 rounded-full bg-brand-100 text-brand-800 font-bold flex items-center justify-center shrink-0 text-[11px]">1</div>
+              <div><strong>Unggah PDF Bukti Potong:</strong> Masukkan satu atau banyak file PDF BPPU DJP unifikasi ke sistem.</div>
+            </div>
+            <div class="flex items-start space-x-2.5">
+              <div class="w-5 h-5 rounded-full bg-brand-100 text-brand-800 font-bold flex items-center justify-center shrink-0 text-[11px]">2</div>
+              <div><strong>Verifikasi di Layar:</strong> Audit total DPP, total PPh, dan periksa setiap baris di tabel interaktif.</div>
+            </div>
+            <div class="flex items-start space-x-2.5">
+              <div class="w-5 h-5 rounded-full bg-brand-100 text-brand-800 font-bold flex items-center justify-center shrink-0 text-[11px]">3</div>
+              <div><strong>Unduh Excel Berumus:</strong> Klik tombol ekspor untuk menghasilkan file .xlsx rapi dengan rumus =SUM().</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Aggregate Metric Summary Cards (Shown when data loaded) -->
+    <div id="metricSection" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Dokumen</span>
+          <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline">
+          <span class="text-2xl font-bold text-slate-900 tabular-nums" id="statTotalDoc">0</span>
+          <span class="ml-2 text-xs text-slate-500 font-medium">berkas</span>
+        </div>
+        <div class="mt-2 text-[11px] text-emerald-600 font-medium flex items-center">
+          <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          100% Ekstraksi Berhasil
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total DPP</span>
+          <div class="w-8 h-8 rounded-lg bg-brand-50 text-brand-700 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline">
+          <span class="text-xs font-bold text-slate-400 mr-1">Rp</span>
+          <span class="text-2xl font-bold text-slate-900 tabular-nums" id="statTotalDPP">0</span>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500 font-medium">Dasar Pengenaan Pajak</div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-brand-200 bg-brand-50/20 shadow-xs relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-brand-800 uppercase tracking-wider">Total PPh Terpotong</span>
+          <div class="w-8 h-8 rounded-lg bg-brand-700 text-white flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline">
+          <span class="text-xs font-bold text-brand-700 mr-1">Rp</span>
+          <span class="text-2xl font-bold text-brand-800 tabular-nums" id="statTotalPPh">0</span>
+        </div>
+        <div class="mt-2 text-[11px] text-brand-700 font-medium">Pajak Penghasilan (Final)</div>
+      </div>
+
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-xs relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Masa Pajak / Pemotong</span>
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="mt-2.5 flex items-baseline">
+          <span class="text-lg font-bold text-slate-900 truncate" id="statMasaPajak">-</span>
+        </div>
+        <div class="mt-2 text-[11px] text-slate-500 font-medium truncate" id="statPemotongInfo">Terverifikasi DJP</div>
+      </div>
+    </div>
+
+    <!-- Data Table & Toolbar Section -->
+    <div id="tableSection" class="hidden bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      
+      <!-- Toolbar Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-50/50">
+        <div>
+          <div class="flex items-center space-x-2.5">
+            <h3 class="text-base font-bold text-slate-900">Hasil Rekapitulasi Bukti Potong</h3>
+            <span id="badgeCount" class="text-xs font-semibold bg-brand-50 text-brand-800 border border-brand-200 px-2.5 py-0.5 rounded-full">
+              0 baris
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Tinjau seluruh data hasil ekstraksi di bawah ini sebelum mengunduh format Excel.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Search Box -->
+          <div class="relative w-56 sm:w-64">
+            <input
+              type="text"
+              id="searchInput"
+              oninput="handleSearch(this.value)"
+              placeholder="Cari nomor, pemotong, objek..."
+              class="w-full text-xs rounded-lg border-slate-300 pl-8 pr-3 py-2 border focus:ring-2 focus:ring-brand-700 focus:border-brand-700 bg-white placeholder-slate-400"
+            >
+            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Reset Button -->
+          <button
+            type="button"
+            onclick="clearData()"
+            class="px-3 py-2 text-xs font-medium text-slate-600 hover:text-slate-900 border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            Reset
+          </button>
+
+          <!-- Primary Export Excel Button -->
+          <button
+            type="button"
+            id="btnExportExcel"
+            onclick="exportToExcel()"
+            class="inline-flex items-center px-4 py-2 text-xs font-bold rounded-lg text-white bg-brand-700 hover:bg-brand-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-700 transition-all shadow-xs hover:shadow-sm"
+          >
+            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Unduh Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Data Table -->
+      <div class="overflow-x-auto max-h-[580px] overflow-y-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider sticky top-0 z-10 border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-3 border-r border-slate-200 w-10 text-center">No</th>
+              <th class="py-3 px-3 border-r border-slate-200 whitespace-nowrap">Nomor Bupot</th>
+              <th class="py-3 px-3 border-r border-slate-200 text-center whitespace-nowrap">Masa Pajak</th>
+              <th class="py-3 px-3 border-r border-slate-200 text-center whitespace-nowrap">Sifat Pajak</th>
+              <th class="py-3 px-3 border-r border-slate-200 text-center whitespace-nowrap">Status</th>
+              <th class="py-3 px-3 border-r border-slate-200 whitespace-nowrap">Jenis PPh</th>
+              <th class="py-3 px-3 border-r border-slate-200 whitespace-nowrap font-mono text-[11px]">Kode Objek</th>
+              <th class="py-3 px-3 border-r border-slate-200 min-w-[220px]">Objek Pajak</th>
+              <th class="py-3 px-3 border-r border-slate-200 text-right whitespace-nowrap">DPP (Rp)</th>
+              <th class="py-3 px-3 border-r border-slate-200 text-right whitespace-nowrap">Tarif</th>
+              <th class="py-3 px-3 border-r border-slate-200 text-right whitespace-nowrap font-bold text-brand-800">PPh (Rp)</th>
+              <th class="py-3 px-3 border-r border-slate-200 whitespace-nowrap">Tgl Dokumen</th>
+              <th class="py-3 px-3 border-r border-slate-200 whitespace-nowrap font-mono text-[11px]">No Dokumen</th>
+              <th class="py-3 px-3 border-r border-slate-200 whitespace-nowrap font-mono text-[11px]">NPWP Pemotong</th>
+              <th class="py-3 px-3 border-r border-slate-200 min-w-[180px]">Nama Pemotong</th>
+              <th class="py-3 px-3 whitespace-nowrap">Tgl Pemotongan</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-200 bg-white">
+            <!-- Dynamic Data Rows -->
+          </tbody>
+          <tfoot class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300 sticky bottom-0 z-10">
+            <tr>
+              <td colspan="8" class="py-3 px-3 text-right uppercase tracking-wider text-xs border-r border-slate-200">
+                TOTAL KESELURUHAN (SUM):
+              </td>
+              <td id="tfootTotalDPP" class="py-3 px-3 text-right tabular-nums text-xs border-r border-slate-200 font-bold">
+                0
+              </td>
+              <td class="py-3 px-3 text-center border-r border-slate-200 text-slate-400">-</td>
+              <td id="tfootTotalPPh" class="py-3 px-3 text-right tabular-nums text-xs text-brand-800 font-bold border-r border-slate-200">
+                0
+              </td>
+              <td colspan="5" class="py-3 px-3 bg-slate-100"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Empty Initial State Guide (Shown when no files uploaded yet) -->
+    <div id="initialStateNotice" class="bg-white rounded-xl border border-slate-200 p-10 text-center shadow-xs">
+      <div class="max-w-md mx-auto space-y-3">
+        <div class="w-12 h-12 rounded-full bg-brand-50 text-brand-700 mx-auto flex items-center justify-center">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+        </div>
+        <h3 class="text-sm font-bold text-slate-900">Belum Ada Dokumen Yang Dimuat</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          Silakan tarik-lepas file PDF bukti pemotongan PPh Unifikasi ke area unggah di atas, atau klik tombol 
+          <span class="font-semibold text-brand-700">"Pilih Berkas PDF"</span> untuk memulai proses ekstraksi otomatis.
+        </p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="copyToast" class="fixed bottom-6 right-6 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-lg shadow-lg hidden transition-opacity z-50 flex items-center space-x-2">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    <span id="toastMsg">Teks disalin ke clipboard</span>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-500">
+      <div class="flex items-center space-x-2">
+        <span class="font-bold text-slate-800">BupotMerge</span>
+        <span>&bull;</span>
+        <span>Merger Bukti Potong PPh Unifikasi Format Standar DJP</span>
+      </div>
+      <div class="flex items-center space-x-4">
+        <span>Preservasi Teks NPWP</span>
+        <span>&bull;</span>
+        <span>Formula Otomatis Excel (.xlsx)</span>
+        <span>&bull;</span>
+        <span class="font-mono text-slate-600">v2.4 Pro</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    let extractedRows = [];
+    let displayedRows = [];
+
+    function formatNumber(num) {
+      if (num === null || num === undefined || isNaN(num)) return "0";
+      return new Intl.NumberFormat('id-ID').format(num);
+    }
+
+    function showLoading(text) {
+      document.getElementById('loadingText').textContent = text;
+      document.getElementById('loadingBanner').classList.remove('hidden');
+      document.getElementById('errorBanner').classList.add('hidden');
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingBanner').classList.add('hidden');
+    }
+
+    function showError(title, message) {
+      document.getElementById('errorTitle').textContent = title;
+      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorBanner').classList.remove('hidden');
+    }
+
+    function hideError() {
+      document.getElementById('errorBanner').classList.add('hidden');
+    }
+
+    function copyToClipboard(text, label) {
+      navigator.clipboard.writeText(text).then(() => {
+        const toast = document.getElementById('copyToast');
+        document.getElementById('toastMsg').textContent = `${label || 'Data'} berhasil disalin: ${text}`;
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 2500);
+      });
+    }
+
+    async function uploadFiles(files) {
+      if (!files || files.length === 0) return;
+
+      hideError();
+      showLoading(`Sedang mengekstrak ${files.length} berkas PDF bukti potong unifikasi...`);
+
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+
+      try {
+        const response = await fetch('/api/extract-upload', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.message || 'Gagal memproses berkas unggahan.');
+        }
+
+        extractedRows = result.data;
+        displayedRows = [...extractedRows];
+        renderTable();
+        renderFileQueue();
+      } catch (err) {
+        showError("Gagal Mengunggah Berkas", err.message);
+      } finally {
+        hideLoading();
+        document.getElementById('fileInput').value = '';
+      }
+    }
+
+    function handleFileSelect(event) {
+      uploadFiles(event.target.files);
+    }
+
+    function handleDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      document.getElementById('dropZone').classList.add('border-brand-600', 'bg-brand-50/50', 'ring-2', 'ring-brand-200');
+    }
+
+    function handleDragLeave(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      document.getElementById('dropZone').classList.remove('border-brand-600', 'bg-brand-50/50', 'ring-2', 'ring-brand-200');
+    }
+
+    function handleDrop(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      document.getElementById('dropZone').classList.remove('border-brand-600', 'bg-brand-50/50', 'ring-2', 'ring-brand-200');
+      if (event.dataTransfer && event.dataTransfer.files) {
+        uploadFiles(event.dataTransfer.files);
+      }
+    }
+
+    function handleSearch(keyword) {
+      const q = (keyword || '').toLowerCase().trim();
+      if (!q) {
+        displayedRows = [...extractedRows];
+      } else {
+        displayedRows = extractedRows.filter(row => {
+          return Object.values(row).some(val => 
+            String(val || '').toLowerCase().includes(q)
+          );
+        });
+      }
+      renderRowsOnly();
+    }
+
+    function renderFileQueue() {
+      const queueSection = document.getElementById('fileQueueSection');
+      const queueList = document.getElementById('fileQueueList');
+      const queueCount = document.getElementById('queueCount');
+
+      if (!extractedRows || extractedRows.length === 0) {
+        queueSection.classList.add('hidden');
+        return;
+      }
+
+      queueSection.classList.remove('hidden');
+      queueCount.textContent = extractedRows.length;
+      queueList.innerHTML = '';
+
+      extractedRows.forEach((row, i) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg';
+        item.innerHTML = `
+          <div class="flex items-center space-x-2 truncate">
+            <svg class="w-4 h-4 text-red-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/>
+            </svg>
+            <span class="font-medium text-slate-800 truncate">${escapeHtml(row.file_source || `Dokumen ${i+1}`)}</span>
+            <span class="text-[10px] text-slate-500 font-mono">(${escapeHtml(row.file_size || 'PDF')})</span>
+          </div>
+          <div class="flex items-center space-x-2 shrink-0">
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+              ${escapeHtml(row.Nomor || 'Berhasil')}
+            </span>
+          </div>
+        `;
+        queueList.appendChild(item);
+      });
+    }
+
+    function clearData() {
+      extractedRows = [];
+      displayedRows = [];
+      document.getElementById('searchInput').value = '';
+      document.getElementById('tableSection').classList.add('hidden');
+      document.getElementById('metricSection').classList.add('hidden');
+      document.getElementById('fileQueueSection').classList.add('hidden');
+      document.getElementById('initialStateNotice').classList.remove('hidden');
+      hideError();
+    }
+
+    function renderRowsOnly() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      if (displayedRows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="16" class="py-8 text-center text-slate-500">
+              Tidak ada data yang sesuai dengan kata kunci pencarian.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      displayedRows.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = idx % 2 === 0 ? 'bg-white hover:bg-slate-50/80 transition-colors' : 'bg-slate-50/40 hover:bg-slate-50 transition-colors';
+
+        const tarifFormatted = row.tarif ? `${row.tarif}%` : '0%';
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 border-r border-slate-200 text-center text-slate-500 tabular-nums font-mono text-[11px]">${idx + 1}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 font-semibold text-slate-900 whitespace-nowrap">
+            <span class="cursor-pointer hover:text-brand-700 hover:underline" onclick="copyToClipboard('${escapeHtml(row['Nomor'])}', 'Nomor Bupot')">
+              ${escapeHtml(row['Nomor'])}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 border-r border-slate-200 text-center whitespace-nowrap font-medium text-slate-700">${escapeHtml(row['Masa Pajak'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 text-center whitespace-nowrap">
+            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">${escapeHtml(row['Sifat Pajak Penghasilan'])}</span>
+          </td>
+          <td class="py-2.5 px-3 border-r border-slate-200 text-center whitespace-nowrap">
+            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">${escapeHtml(row['Status'])}</span>
+          </td>
+          <td class="py-2.5 px-3 border-r border-slate-200 whitespace-nowrap font-medium text-slate-800">${escapeHtml(row['jenis pph'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 whitespace-nowrap font-mono text-[11px] text-slate-600">${escapeHtml(row['kode objek pajak'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 max-w-xs truncate" title="${escapeHtml(row['objek pajak'])}">${escapeHtml(row['objek pajak'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 text-right tabular-nums font-medium whitespace-nowrap text-slate-900">${formatNumber(row['dpp'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 text-right tabular-nums whitespace-nowrap text-slate-600">${tarifFormatted}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 text-right tabular-nums font-bold text-brand-800 whitespace-nowrap">${formatNumber(row['pajak penghasilan'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 whitespace-nowrap text-slate-600">${escapeHtml(row['tanggal dokumen'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 whitespace-nowrap font-mono text-[11px] text-slate-700">${escapeHtml(row['nomor dokumen'])}</td>
+          <td class="py-2.5 px-3 border-r border-slate-200 whitespace-nowrap font-mono text-[11px] text-slate-900 font-medium">
+            <span class="cursor-pointer hover:text-brand-700 hover:underline" onclick="copyToClipboard('${escapeHtml(row['npwp'])}', 'NPWP')">
+              ${escapeHtml(row['npwp'])}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 border-r border-slate-200 whitespace-nowrap font-medium text-slate-800">${escapeHtml(row['nama pemotong'])}</td>
+          <td class="py-2.5 px-3 whitespace-nowrap text-slate-600">${escapeHtml(row['tanggal pemotongan'])}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderTable() {
+      if (extractedRows.length === 0) {
+        clearData();
+        return;
+      }
+
+      document.getElementById('initialStateNotice').classList.add('hidden');
+      document.getElementById('tableSection').classList.remove('hidden');
+      document.getElementById('metricSection').classList.remove('hidden');
+
+      // Calculate Total Aggregates
+      const totalDoc = extractedRows.length;
+      const totalDPP = extractedRows.reduce((acc, cur) => acc + (Number(cur.dpp) || 0), 0);
+      const totalPPh = extractedRows.reduce((acc, cur) => acc + (Number(cur['pajak penghasilan']) || 0), 0);
+      const masaPajakFirst = extractedRows[0]?.['Masa Pajak'] || '-';
+      const namaPemotongFirst = extractedRows[0]?.['nama pemotong'] || 'Terverifikasi';
+
+      document.getElementById('statTotalDoc').textContent = formatNumber(totalDoc);
+      document.getElementById('statTotalDPP').textContent = formatNumber(totalDPP);
+      document.getElementById('statTotalPPh').textContent = formatNumber(totalPPh);
+      document.getElementById('statMasaPajak').textContent = masaPajakFirst;
+      document.getElementById('statPemotongInfo').textContent = namaPemotongFirst;
+
+      document.getElementById('tfootTotalDPP').textContent = formatNumber(totalDPP);
+      document.getElementById('tfootTotalPPh').textContent = formatNumber(totalPPh);
+      document.getElementById('badgeCount').textContent = `${formatNumber(totalDoc)} baris terverifikasi`;
+
+      renderRowsOnly();
+    }
+
+    async function exportToExcel() {
+      if (!extractedRows || extractedRows.length === 0) {
+        showError("Data Kosong", "Tidak ada data yang dapat diekspor ke Excel.");
+        return;
+      }
+
+      showLoading("Sedang menghasilkan file Excel...");
+
+      try {
+        const response = await fetch('/api/export-excel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: extractedRows })
+        });
+
+        if (!response.ok) {
+          const res = await response.json();
+          throw new Error(res.message || 'Gagal membuat file Excel.');
+        }
+
+        const blob = await response.blob();
+        const disposition = response.headers.get('Content-Disposition');
+        let filename = 'Rekap_Merger_Bupot.xlsx';
+        if (disposition && disposition.indexOf('filename=') !== -1) {
+          const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+          if (matches != null && matches[1]) {
+            filename = matches[1].replace(/['"]/g, '');
+          }
+        }
+
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (err) {
+        showError("Gagal Mengunduh Excel", err.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+  </script>
+</body>
+</html>
