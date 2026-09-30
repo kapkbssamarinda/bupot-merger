@@ -16,96 +16,219 @@ if not os.path.isdir(template_dir):
 app = Flask(__name__, template_folder=template_dir)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload
 
+MONTHS_ID = {
+    '01': 'Januari', '1': 'Januari',
+    '02': 'Februari', '2': 'Februari',
+    '03': 'Maret', '3': 'Maret',
+    '04': 'April', '4': 'April',
+    '05': 'Mei', '5': 'Mei',
+    '06': 'Juni', '6': 'Juni',
+    '07': 'Juli', '7': 'Juli',
+    '08': 'Agustus', '8': 'Agustus',
+    '09': 'September', '9': 'September',
+    '10': 'Oktober',
+    '11': 'November',
+    '12': 'Desember'
+}
+
+def parse_v2_date(date_str):
+    if not date_str:
+        return ''
+    m = re.search(r'(\d[\d\s]*?)\s*dd\s*(\d[\d\s]*?)\s*mm\s*(\d[\d\s]*?)\s*yyyy', date_str, re.IGNORECASE)
+    if m:
+        d = re.sub(r'\s+', '', m.group(1)).zfill(2)
+        mo = re.sub(r'\s+', '', m.group(2)).zfill(2)
+        y = re.sub(r'\s+', '', m.group(3))
+        mo_name = MONTHS_ID.get(mo, mo)
+        return f"{d} {mo_name} {y}"
+    m2 = re.search(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})', date_str)
+    if m2:
+        return m2.group(0).strip()
+    return date_str.strip()
+
+def parse_id_number(val, is_rate=False):
+    if not val:
+        return 0.0
+    val_str = str(val).strip()
+    if is_rate:
+        val_clean = val_str.replace(',', '.')
+        try:
+            return float(val_clean)
+        except ValueError:
+            return 0.0
+    if ',' in val_str:
+        val_clean = val_str.replace('.', '').replace(',', '.')
+    else:
+        parts = val_str.split('.')
+        if len(parts) > 2:
+            val_clean = val_str.replace('.', '')
+        elif len(parts) == 2 and len(parts[1]) == 3:
+            val_clean = val_str.replace('.', '')
+        else:
+            val_clean = val_str
+    try:
+        return float(val_clean)
+    except ValueError:
+        return 0.0
+
 def parse_bupot_text(text, source_name=""):
     """
-    Ekstraksi data bukti potong BPPU Unifikasi format DJP dari teks PDF.
-    Kolom target:
-    1. Nomor
-    2. Masa Pajak
-    3. Sifat Pajak Penghasilan
-    4. Status
-    5. jenis pph
-    6. kode objek pajak
-    7. objek pajak
-    8. dpp
-    9. tarif
-    10. pajak penghasilan
-    11. tanggal dokumen
-    12. nomor dokumen
-    13. npwp
-    14. nama pemotong
-    15. tanggal pemotongan
+    Ekstraksi data bukti potong dari teks PDF dengan deteksi otomatis versi:
+    - V1 (Standar): Format DJP BPPU Unifikasi Berformat Standar
+    - V2 (BPBS): Formulir BPBS PPh Pasal 4(2), 15, 22, dan 23
+
+    Kolom target utama:
+    - NPWP PEMOTONG
+    - NAMA PEMOTONG
+    - TANGGAL PEMOTONGAN
+    - DPP
+    - PPH DIPOTONG
+    - NOMOR BUPOT
     """
-    # 1. Header row: NOMOR, MASA PAJAK, SIFAT, STATUS
-    header_m = re.search(r'([A-Z0-9]{8,16})\s+(\d{2}-\d{4})\s+([A-Z]+)\s+([A-Z]+)', text)
-    nomor = header_m.group(1) if header_m else ''
-    masa_pajak = header_m.group(2) if header_m else ''
-    sifat = header_m.group(3) if header_m else ''
-    status = header_m.group(4) if header_m else ''
+    is_v2 = ('FORMULIR BPBS' in text) or ('H.1 NOMOR' in text)
 
-    # 2. Jenis PPh: B.2 Jenis PPh : Pasal 22
-    jenis_pph_m = re.search(r'B\.2\s+Jenis\s+PPh\s*:\s*([^\n\r]+)', text)
-    jenis_pph = jenis_pph_m.group(1).strip() if jenis_pph_m else ''
+    if is_v2:
+        version = 'V2 (BPBS)'
 
-    # 3. Kode Objek Pajak, Objek Pajak, DPP, Tarif, Pajak Penghasilan (B.3 - B.7)
-    sec_b = re.search(r'B\.3\s+B\.4\s+B\.5\s+B\.6\s+B\.7\s*([\s\S]*?)B\.8', text)
-    kode_objek = ''
-    objek_pajak = ''
-    dpp = 0.0
-    tarif = 0.0
-    pph = 0.0
+        # 1. Nomor Bupot: H.1 NOMOR : 2 0 0 0 0 1 3 5 6 5
+        m_no = re.search(r'H\.1\s+NOMOR\s*:\s*([0-9\s]+?)(?=\s*H\.[0-9]|\n|$)', text)
+        nomor = re.sub(r'\s+', '', m_no.group(1)) if m_no else ''
 
-    if sec_b:
-        b_text = sec_b.group(1).strip()
-        lines = [l.strip() for l in b_text.splitlines() if l.strip()]
-        if lines:
-            m_row = re.search(r'^(\d{2}-\d{3}-\d{2})\s+(.*?)\s+([\d\.,]+)\s+([\d\.,]+)\s+([\d\.,]+)$', lines[0])
-            if m_row:
-                kode_objek = m_row.group(1)
-                objek_p1 = m_row.group(2)
-                dpp_str = m_row.group(3).replace('.', '').replace(',', '.')
-                tarif_str = m_row.group(4).replace(',', '.')
-                pph_str = m_row.group(5).replace('.', '').replace(',', '.')
-                try:
-                    dpp = float(dpp_str)
-                except ValueError:
-                    dpp = 0.0
-                try:
-                    tarif = float(tarif_str)
-                except ValueError:
-                    tarif = 0.0
-                try:
-                    pph = float(pph_str)
-                except ValueError:
-                    pph = 0.0
+        # 2. Sifat Pajak: H.4 PPh Final vs H.5 X PPh Tidak Final
+        sifat = 'TIDAK FINAL'
+        if re.search(r'H\.4\s*[XxVv]\s*PPh\s*Final', text) or re.search(r'H\.4\s*\[[XxVv]\]\s*PPh\s*Final', text):
+            sifat = 'FINAL'
+        elif re.search(r'H\.5\s*[XxVv]\s*PPh\s*Tidak\s*Final', text) or re.search(r'H\.5\s*\[[XxVv]\]\s*PPh\s*Tidak\s*Final', text):
+            sifat = 'TIDAK FINAL'
 
-                remaining_desc = ' '.join(lines[1:])
-                objek_pajak = (objek_p1 + (' ' + remaining_desc if remaining_desc else '')).strip()
-            else:
-                objek_pajak = ' '.join(lines)
+        # 3. Status: H.2 Pembetulan Ke- 0
+        m_stat = re.search(r'H\.2\s+Pembetulan\s+Ke-\s*(\d+)', text, re.IGNORECASE)
+        status = f'PEMBETULAN-{m_stat.group(1)}' if m_stat and m_stat.group(1) != '0' else 'NORMAL'
 
-    # 4. Tanggal Dokumen: B.8 Dokumen Dasar Bukti ... Tanggal : 07 September 2026
-    tgl_dok_m = re.search(r'B\.8[\s\S]*?Tanggal\s*:\s*([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
-    tgl_dokumen = tgl_dok_m.group(1).strip() if tgl_dok_m else ''
+        # 4. Table B.1 - B.6
+        masa_pajak = ''
+        kode_objek = ''
+        dpp = 0.0
+        tarif = 0.0
+        pph = 0.0
 
-    # 5. Nomor Dokumen: B.9 Nomor Dokumen : 9140424520
-    no_dok_m = re.search(r'B\.9\s+Nomor\s+Dokumen\s*:\s*([^\n\r]+)', text)
-    no_dokumen = no_dok_m.group(1).strip() if no_dok_m else ''
+        sec_b_m = re.search(r'B\.1\s+B\.2\s+B\.3\s+B\.4\s+B\.5\s+B\.6\s*([\s\S]*?)(?:Keterangan\s+Kode\s+Objek|B\.7)', text)
+        if sec_b_m:
+            lines = [l.strip() for l in sec_b_m.group(1).splitlines() if l.strip()]
+            if lines:
+                parts = lines[0].split()
+                if len(parts) >= 5:
+                    raw_masa = parts[0]
+                    if '-' in raw_masa:
+                        m_parts = raw_masa.split('-')
+                        masa_pajak = f"{m_parts[0].zfill(2)}-{m_parts[1]}"
+                    else:
+                        masa_pajak = raw_masa
+                    kode_objek = parts[1]
+                    dpp = parse_id_number(parts[2])
+                    if len(parts) == 5:
+                        tarif = parse_id_number(parts[3], is_rate=True)
+                        pph = parse_id_number(parts[4])
+                    else:
+                        tarif = parse_id_number(parts[4], is_rate=True)
+                        pph = parse_id_number(parts[5])
 
-    # 6. NPWP Pemotong: C.1 NPWP / NIK : 0010611572051000
-    npwp_m = re.search(r'C\.1\s+NPWP\s*/\s*NIK\s*:\s*([0-9]{15,16})', text)
-    npwp = npwp_m.group(1).strip() if npwp_m else ''
+        # 5. Jenis PPh derived from kode_objek or form
+        if kode_objek.startswith('24-'):
+            jenis_pph = 'Pasal 23'
+        elif kode_objek.startswith('22-'):
+            jenis_pph = 'Pasal 22'
+        elif kode_objek.startswith('28-'):
+            jenis_pph = 'Pasal 4 ayat (2)'
+        elif kode_objek.startswith('15-'):
+            jenis_pph = 'Pasal 15'
+        else:
+            jenis_pph = 'PPh Unifikasi'
 
-    # 7. Nama Pemotong: C.3 NAMA PEMOTONG DAN/ATAU PEMUNGUT PPh : PERTAMINA PATRA NIAGA
-    nama_pemotong_m = re.search(r'C\.3\s+NAMA\s+PEMOTONG[^\n:]*:\s*([^\n\r]+)', text)
-    nama_pemotong = nama_pemotong_m.group(1).strip() if nama_pemotong_m else ''
+        # 6. Objek Pajak description
+        m_obj = re.search(r'Keterangan\s+Kode\s+Objek\s+Pajak\s*:\s*([\s\S]*?)B\.7', text)
+        objek_pajak = ' '.join(m_obj.group(1).split()) if m_obj else ''
 
-    # 8. Tanggal Pemotongan: C.4 TANGGAL : 07 September 2026
-    tgl_potong_m = re.search(r'C\.4\s+TANGGAL\s*:\s*([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
-    tgl_pemotongan = tgl_potong_m.group(1).strip() if tgl_potong_m else ''
+        # 7. Dokumen Referensi (B.7)
+        m_dok = re.search(r'B\.7\s+Dokumen\s+Referensi[\s\S]*?Nomor\s+Dokumen\s*[:\s]\s*([^\n\r]+)', text)
+        no_dokumen = m_dok.group(1).strip() if m_dok else ''
+
+        m_tgldok = re.search(r'B\.7\s+Dokumen\s+Referensi[\s\S]*?Tanggal\s*[:\s]\s*([0-9\s]+dd[0-9\s]+mm[0-9\s]+yyyy|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
+        tgl_dokumen = parse_v2_date(m_tgldok.group(1)) if m_tgldok else ''
+
+        # 8. NPWP Pemotong (C.1)
+        m_npwp = re.search(r'C\.1\s+NPWP\s*:\s*([0-9\s]+?)(?=\s*C\.[0-9]|\n|$)', text)
+        npwp = re.sub(r'\s+', '', m_npwp.group(1)) if m_npwp else ''
+
+        # 9. Nama Pemotong (C.2)
+        m_nama = re.search(r'C\.2\s+Nama\s+(?:Wajib\s+Pajak|Pemotong)[^\n:]*:\s*([^\n\r]+)', text)
+        nama_pemotong = m_nama.group(1).strip() if m_nama else ''
+
+        # 10. Tanggal Pemotongan (C.3)
+        m_tglpotong = re.search(r'C\.3\s+Tanggal\s*:\s*([0-9\s]+dd[0-9\s]+mm[0-9\s]+yyyy|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4}|[^\n\r]+)', text)
+        tgl_pemotongan = parse_v2_date(m_tglpotong.group(1)) if m_tglpotong else ''
+
+    else:
+        version = 'V1 (Standar)'
+
+        # 1. Header row: NOMOR, MASA PAJAK, SIFAT, STATUS
+        header_m = re.search(r'([A-Z0-9]{8,16})\s+(\d{2}-\d{4})\s+([A-Z]+)\s+([A-Z]+)', text)
+        nomor = header_m.group(1) if header_m else ''
+        masa_pajak = header_m.group(2) if header_m else ''
+        sifat = header_m.group(3) if header_m else ''
+        status = header_m.group(4) if header_m else ''
+
+        # 2. Jenis PPh: B.2 Jenis PPh : Pasal 22
+        jenis_pph_m = re.search(r'B\.2\s+Jenis\s+PPh\s*:\s*([^\n\r]+)', text)
+        jenis_pph = jenis_pph_m.group(1).strip() if jenis_pph_m else ''
+
+        # 3. Kode Objek Pajak, Objek Pajak, DPP, Tarif, Pajak Penghasilan (B.3 - B.7)
+        sec_b = re.search(r'B\.3\s+B\.4\s+B\.5\s+B\.6\s+B\.7\s*([\s\S]*?)B\.8', text)
+        kode_objek = ''
+        objek_pajak = ''
+        dpp = 0.0
+        tarif = 0.0
+        pph = 0.0
+
+        if sec_b:
+            b_text = sec_b.group(1).strip()
+            lines = [l.strip() for l in b_text.splitlines() if l.strip()]
+            if lines:
+                m_row = re.search(r'^(\d{2}-\d{3}-\d{2})\s+(.*?)\s+([\d\.,]+)\s+([\d\.,]+)\s+([\d\.,]+)$', lines[0])
+                if m_row:
+                    kode_objek = m_row.group(1)
+                    objek_p1 = m_row.group(2)
+                    dpp = parse_id_number(m_row.group(3))
+                    tarif = parse_id_number(m_row.group(4), is_rate=True)
+                    pph = parse_id_number(m_row.group(5))
+                    remaining_desc = ' '.join(lines[1:])
+                    objek_pajak = (objek_p1 + (' ' + remaining_desc if remaining_desc else '')).strip()
+                else:
+                    objek_pajak = ' '.join(lines)
+
+        # 4. Tanggal Dokumen: B.8 Dokumen Dasar Bukti ... Tanggal : 07 September 2026
+        tgl_dok_m = re.search(r'B\.8[\s\S]*?Tanggal\s*:\s*([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
+        tgl_dokumen = tgl_dok_m.group(1).strip() if tgl_dok_m else ''
+
+        # 5. Nomor Dokumen: B.9 Nomor Dokumen : 9140424520
+        no_dok_m = re.search(r'B\.9\s+Nomor\s+Dokumen\s*:\s*([^\n\r]+)', text)
+        no_dokumen = no_dok_m.group(1).strip() if no_dok_m else ''
+
+        # 6. NPWP Pemotong: C.1 NPWP / NIK : 0010611572051000
+        npwp_m = re.search(r'C\.1\s+NPWP\s*/\s*NIK\s*:\s*([0-9]{15,16})', text)
+        npwp = npwp_m.group(1).strip() if npwp_m else ''
+
+        # 7. Nama Pemotong: C.3 NAMA PEMOTONG DAN/ATAU PEMUNGUT PPh : PERTAMINA PATRA NIAGA
+        nama_pemotong_m = re.search(r'C\.3\s+NAMA\s+PEMOTONG[^\n:]*:\s*([^\n\r]+)', text)
+        nama_pemotong = nama_pemotong_m.group(1).strip() if nama_pemotong_m else ''
+
+        # 8. Tanggal Pemotongan: C.4 TANGGAL : 07 September 2026
+        tgl_potong_m = re.search(r'C\.4\s+TANGGAL\s*:\s*([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
+        tgl_pemotongan = tgl_potong_m.group(1).strip() if tgl_potong_m else ''
 
     return {
         'file_source': source_name,
+        'versi': version,
         'Nomor': nomor,
         'Masa Pajak': masa_pajak,
         'Sifat Pajak Penghasilan': sifat,
@@ -131,6 +254,7 @@ def extract_pdf_file(file_bytes_or_path, filename=""):
     except Exception as e:
         return {
             'file_source': filename,
+            'versi': 'Tidak Dikenal',
             'error': str(e),
             'Nomor': '',
             'Masa Pajak': '',
@@ -215,11 +339,10 @@ def export_excel():
     ws = wb.active
     ws.title = "Data Bupot"
 
-    # Kolom sesuai permintaan user:
-    # Nomor, Masa Pajak, Sifat Pajak Penghasilan, Status, jenis pph, kode objek pajak, objek pajak,
-    # dpp, tarif, pajak penghasilan, tanggal dokumen, nomor dokumen, npwp, nama pemotong, tanggal pemotongan
+    # Kolom hasil konsolidasi mencakup Versi Bupot & 15 kolom standar:
     headers = [
-        "NOMOR",
+        "VERSI",
+        "NOMOR BUPOT",
         "MASA PAJAK",
         "SIFAT PAJAK PENGHASILAN",
         "STATUS",
@@ -228,10 +351,10 @@ def export_excel():
         "OBJEK PAJAK",
         "DPP",
         "TARIF",
-        "PAJAK PENGHASILAN",
+        "PPH DIPOTONG",
         "TANGGAL DOKUMEN",
         "NOMOR DOKUMEN",
-        "NPWP",
+        "NPWP PEMOTONG",
         "NAMA PEMOTONG",
         "TANGGAL PEMOTONGAN"
     ]
@@ -264,6 +387,7 @@ def export_excel():
     row_start = 2
     for item in data:
         row_values = [
+            str(item.get("versi", "")),
             str(item.get("Nomor", "")),
             str(item.get("Masa Pajak", "")),
             str(item.get("Sifat Pajak Penghasilan", "")),
@@ -290,15 +414,15 @@ def export_excel():
             cell.font = Font(name="Calibri", size=10)
 
             # Formatting khusus
-            if col_idx in [1, 2, 3, 4, 6, 11, 15]:  # Identitas kode & tanggal
+            if col_idx in [1, 2, 3, 4, 5, 7, 12, 16]:  # VERSI, NOMOR, MASA, SIFAT, STATUS, KODE, TGL DOK, TGL POTONG
                 cell.alignment = center_align
-            elif col_idx in [8, 10]:  # DPP & PPh (Numeric with thousand separator)
+            elif col_idx in [9, 11]:  # DPP & PPh Dipotong (Numeric with thousand separator)
                 cell.number_format = '#,##0'
                 cell.alignment = right_align
-            elif col_idx == 9:  # Tarif
-                cell.number_format = '0.0"%"' if cell.value < 1 else '0.0'
+            elif col_idx == 10:  # Tarif
+                cell.number_format = '0.0%' if cell.value < 1 else '0.0'
                 cell.alignment = right_align
-            elif col_idx == 13:  # NPWP (Text format preserving leading zero)
+            elif col_idx == 14:  # NPWP Pemotong (Text format preserving leading zero)
                 cell.number_format = '@'
                 cell.alignment = center_align
             else:
@@ -309,12 +433,12 @@ def export_excel():
     if last_data_row >= row_start:
         total_row = last_data_row + 1
         ws.cell(row=total_row, column=1, value="TOTAL")
-        ws.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=7)
+        ws.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=8)
 
-        # Formula SUM DPP (Kolom H / 8)
-        ws.cell(row=total_row, column=8, value=f"=SUM(H{row_start}:H{last_data_row})")
-        # Formula SUM PPh (Kolom J / 10)
-        ws.cell(row=total_row, column=10, value=f"=SUM(J{row_start}:J{last_data_row})")
+        # Formula SUM DPP (Kolom I / 9)
+        ws.cell(row=total_row, column=9, value=f"=SUM(I{row_start}:I{last_data_row})")
+        # Formula SUM PPh (Kolom K / 11)
+        ws.cell(row=total_row, column=11, value=f"=SUM(K{row_start}:K{last_data_row})")
 
         total_font = Font(name="Calibri", size=10, bold=True, color="0F172A")
         total_fill = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
@@ -331,7 +455,7 @@ def export_excel():
             cell.font = total_font
             cell.fill = total_fill
             cell.border = thick_top_double_bottom
-            if col_idx in [8, 10]:
+            if col_idx in [9, 11]:
                 cell.number_format = '#,##0'
                 cell.alignment = right_align
             elif col_idx == 1:
