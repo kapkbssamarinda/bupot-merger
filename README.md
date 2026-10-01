@@ -21,11 +21,11 @@ Aplikasi web untuk mengekstrak, mendeteksi otomatis versi, dan menggabungkan dat
   9. `DPP` (Dasar Pengenaan Pajak)
   10. `TARIF` (%)
   11. `PPH DIPOTONG` (Pajak Penghasilan Terpotong)
-  12. `TANGGAL DOKUMEN`
+  12. `TANGGAL DOKUMEN` (Format Short Date: `dd/mm/yyyy`)
   13. `NOMOR DOKUMEN`
   14. `NPWP PEMOTONG` (Identitas Pemotong/Pemungut PPh: V1 16-digit, V2 15-digit, V3 15-digit pertama sebelum `/`)
   15. `NAMA PEMOTONG` (Nama Pemotong: V1 C.3, V2 C.2, V3 C.3)
-  16. `TANGGAL PEMOTONGAN` (V1 C.4 teks bulan, V2 C.3 dd-mm-yyyy, V3 C.4 dd-mm-yyyy)
+  16. `TANGGAL PEMOTONGAN` (Format Short Date: `dd/mm/yyyy`)
 
 - **Filter Interaktif & Multi-Upload:**
   - Tombol filter cepat untuk menyaring tampilan: **Semua**, **V1 Standar**, **V2 BPBS**, atau **V3 BPBS**.
@@ -42,6 +42,7 @@ Aplikasi web untuk mengekstrak, mendeteksi otomatis versi, dan menggabungkan dat
   - Header berpenampilan profesional dengan latar hijau petroleum dan teks putih tebal.
   - Kolom DPP & PPh diformat angka ribuan (`#,##0`) agar bisa langsung dirumus.
   - Kolom NPWP diformat Teks (`@`) sehingga `00...` tidak terpotong.
+  - Kolom Tanggal Dokumen dan Tanggal Pemotongan diformat **Short Date** (`dd/mm/yyyy`) sebagai objek tanggal Excel asli.
   - Baris `TOTAL` otomatis di bagian bawah dengan rumus Excel `=SUM(...)`.
   - Lebar kolom otomatis disesuaikan (*auto-fit*).
 

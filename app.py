@@ -1,7 +1,7 @@
 import os
 import io
 import re
-from datetime import datetime
+from datetime import datetime, date
 from flask import Flask, render_template, request, jsonify, send_file
 import pdfplumber
 import openpyxl
@@ -16,35 +16,93 @@ if not os.path.isdir(template_dir):
 app = Flask(__name__, template_folder=template_dir)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload
 
-MONTHS_ID = {
-    '01': 'Januari', '1': 'Januari',
-    '02': 'Februari', '2': 'Februari',
-    '03': 'Maret', '3': 'Maret',
-    '04': 'April', '4': 'April',
-    '05': 'Mei', '5': 'Mei',
-    '06': 'Juni', '6': 'Juni',
-    '07': 'Juli', '7': 'Juli',
-    '08': 'Agustus', '8': 'Agustus',
-    '09': 'September', '9': 'September',
-    '10': 'Oktober',
-    '11': 'November',
-    '12': 'Desember'
+MONTH_MAP = {
+    'januari': 1, 'january': 1, 'jan': 1,
+    'februari': 2, 'february': 2, 'feb': 2,
+    'maret': 3, 'march': 3, 'mar': 3,
+    'april': 4, 'apr': 4,
+    'mei': 5, 'may': 5,
+    'juni': 6, 'june': 6, 'jun': 6,
+    'juli': 7, 'july': 7, 'jul': 7,
+    'agustus': 8, 'august': 8, 'agt': 8, 'aug': 8,
+    'september': 9, 'sep': 9, 'sept': 9,
+    'oktober': 10, 'october': 10, 'okt': 10, 'oct': 10,
+    'november': 11, 'nov': 11,
+    'desember': 12, 'december': 12, 'des': 12, 'dec': 12,
 }
 
+def parse_date_object(val):
+    """
+    Mengonversi berbagai format representasi tanggal ke objek datetime.date:
+    - Format kotak BPBS dengan placeholder dd mm yyyy: '0 1 dd 0 1 mm 2 0 2 4 yyyy'
+    - Format teks bulan bahasa Indonesia: '07 September 2026', '1 Januari 2024'
+    - Format numerik 'dd/mm/yyyy', 'dd-mm-yyyy', 'yyyy-mm-dd'
+    """
+    if not val:
+        return None
+    if isinstance(val, (date, datetime)):
+        return val if isinstance(val, date) else val.date()
+    val = str(val).strip()
+
+    # 1. Kotak dd mm yyyy
+    m_box = re.search(r'(\d[\d\s]*?)\s*dd\s*(\d[\d\s]*?)\s*mm\s*(\d[\d\s]*?)\s*yyyy', val, re.IGNORECASE)
+    if m_box:
+        try:
+            d = int(re.sub(r'\s+', '', m_box.group(1)))
+            m = int(re.sub(r'\s+', '', m_box.group(2)))
+            y = int(re.sub(r'\s+', '', m_box.group(3)))
+            return date(y, m, d)
+        except Exception:
+            pass
+
+    # 2. Format teks Indonesia: '07 September 2026'
+    m_txt = re.search(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})', val)
+    if m_txt:
+        try:
+            d = int(m_txt.group(1))
+            m_str = m_txt.group(2).lower()
+            y = int(m_txt.group(3))
+            if m_str in MONTH_MAP:
+                return date(y, MONTH_MAP[m_str], d)
+        except Exception:
+            pass
+
+    # 3. Format dd/mm/yyyy atau dd-mm-yyyy
+    m_slash = re.search(r'^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$', val)
+    if m_slash:
+        try:
+            d = int(m_slash.group(1))
+            m = int(m_slash.group(2))
+            y = int(m_slash.group(3))
+            return date(y, m, d)
+        except Exception:
+            pass
+
+    # 4. Format ISO yyyy-mm-dd
+    m_iso = re.search(r'^(\d{4})[/.-](\d{1,2})[/.-](\d{1,2})$', val)
+    if m_iso:
+        try:
+            y = int(m_iso.group(1))
+            m = int(m_iso.group(2))
+            d = int(m_iso.group(3))
+            return date(y, m, d)
+        except Exception:
+            pass
+
+    return None
+
+def format_short_date(val):
+    """
+    Format string tanggal ke format Short Date 'dd/mm/yyyy'.
+    Jika tidak dapat dikonversi, kembalikan teks aslinya yang bersih.
+    """
+    d_obj = parse_date_object(val)
+    if d_obj:
+        return d_obj.strftime('%d/%m/%Y')
+    return str(val).strip() if val else ''
+
 def parse_v2_date(date_str):
-    if not date_str:
-        return ''
-    m = re.search(r'(\d[\d\s]*?)\s*dd\s*(\d[\d\s]*?)\s*mm\s*(\d[\d\s]*?)\s*yyyy', date_str, re.IGNORECASE)
-    if m:
-        d = re.sub(r'\s+', '', m.group(1)).zfill(2)
-        mo = re.sub(r'\s+', '', m.group(2)).zfill(2)
-        y = re.sub(r'\s+', '', m.group(3))
-        mo_name = MONTHS_ID.get(mo, mo)
-        return f"{d} {mo_name} {y}"
-    m2 = re.search(r'(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})', date_str)
-    if m2:
-        return m2.group(0).strip()
-    return date_str.strip()
+    return format_short_date(date_str)
 
 def parse_id_number(val, is_rate=False):
     if not val:
@@ -215,7 +273,7 @@ def parse_bupot_text(text, source_name=""):
 
         # 4. Tanggal Dokumen: B.8 Dokumen Dasar Bukti ... Tanggal : 07 September 2026
         tgl_dok_m = re.search(r'B\.8[\s\S]*?Tanggal\s*:\s*([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
-        tgl_dokumen = tgl_dok_m.group(1).strip() if tgl_dok_m else ''
+        tgl_dokumen = format_short_date(tgl_dok_m.group(1)) if tgl_dok_m else ''
 
         # 5. Nomor Dokumen: B.9 Nomor Dokumen : 9140424520
         no_dok_m = re.search(r'B\.9\s+Nomor\s+Dokumen\s*:\s*([^\n\r]+)', text)
@@ -231,7 +289,7 @@ def parse_bupot_text(text, source_name=""):
 
         # 8. Tanggal Pemotongan: C.4 TANGGAL : 07 September 2026
         tgl_potong_m = re.search(r'C\.4\s+TANGGAL\s*:\s*([0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
-        tgl_pemotongan = tgl_potong_m.group(1).strip() if tgl_potong_m else ''
+        tgl_pemotongan = format_short_date(tgl_potong_m.group(1)) if tgl_potong_m else ''
 
     return {
         'file_source': source_name,
@@ -393,6 +451,11 @@ def export_excel():
     # Tulis Data Baris
     row_start = 2
     for item in data:
+        tgl_dok_raw = item.get("tanggal dokumen", "")
+        tgl_potong_raw = item.get("tanggal pemotongan", "")
+        tgl_dok_obj = parse_date_object(tgl_dok_raw)
+        tgl_potong_obj = parse_date_object(tgl_potong_raw)
+
         row_values = [
             str(item.get("versi", "")),
             str(item.get("Nomor", "")),
@@ -405,11 +468,11 @@ def export_excel():
             float(item.get("dpp", 0.0) or 0.0),
             float(item.get("tarif", 0.0) or 0.0),
             float(item.get("pajak penghasilan", 0.0) or 0.0),
-            str(item.get("tanggal dokumen", "")),
+            tgl_dok_obj if tgl_dok_obj else (format_short_date(tgl_dok_raw) or ""),
             str(item.get("nomor dokumen", "")),
             str(item.get("npwp", "")),
             str(item.get("nama pemotong", "")),
-            str(item.get("tanggal pemotongan", ""))
+            tgl_potong_obj if tgl_potong_obj else (format_short_date(tgl_potong_raw) or "")
         ]
         ws.append(row_values)
         current_row = ws.max_row
@@ -421,7 +484,10 @@ def export_excel():
             cell.font = Font(name="Calibri", size=10)
 
             # Formatting khusus
-            if col_idx in [1, 2, 3, 4, 5, 7, 12, 16]:  # VERSI, NOMOR, MASA, SIFAT, STATUS, KODE, TGL DOK, TGL POTONG
+            if col_idx in [12, 16]:  # TGL DOKUMEN & TGL PEMOTONGAN (Short Date: dd/mm/yyyy)
+                cell.number_format = 'dd/mm/yyyy'
+                cell.alignment = center_align
+            elif col_idx in [1, 2, 3, 4, 5, 7]:  # VERSI, NOMOR, MASA, SIFAT, STATUS, KODE
                 cell.alignment = center_align
             elif col_idx in [9, 11]:  # DPP & PPh Dipotong (Numeric with thousand separator)
                 cell.number_format = '#,##0'
