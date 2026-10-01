@@ -303,7 +303,7 @@
               Struktur 16 Kolom Hasil Ekstraksi
             </h3>
             <span class="text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded">
-              V1 &amp; V2 Otomatis
+              V1, V2 &amp; V3 Otomatis
             </span>
           </div>
 
@@ -311,7 +311,7 @@
             <div>
               <div class="text-[11px] font-semibold text-slate-500 mb-1">A. VERSI &amp; IDENTITAS BUKTI POTONG</div>
               <div class="flex flex-wrap gap-1">
-                <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200 font-bold text-[11px]">Versi (V1 / V2)</span>
+                <span class="px-2 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200 font-bold text-[11px]">Versi (V1 / V2 / V3)</span>
                 <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">1. Nomor Bupot</span>
                 <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">2. Masa Pajak</span>
                 <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[11px]">3. Sifat Pajak</span>
@@ -388,7 +388,7 @@
           <span class="ml-2 text-xs text-slate-500 font-medium">berkas</span>
         </div>
         <div id="statVersiBreakdown" class="mt-2 text-[11px] text-slate-600 font-medium flex items-center gap-1.5 truncate">
-          <span class="inline-block w-2 h-2 rounded-full bg-teal-500"></span>V1: 0 &bull; <span class="inline-block w-2 h-2 rounded-full bg-purple-500"></span>V2: 0
+          <span class="inline-block w-2 h-2 rounded-full bg-teal-500"></span>V1: 0 &bull; <span class="inline-block w-2 h-2 rounded-full bg-purple-500"></span>V2: 0 &bull; <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>V3: 0
         </div>
       </div>
 
@@ -481,6 +481,14 @@
               class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-all"
             >
               V2 BPBS (<span id="countFilterV2">0</span>)
+            </button>
+            <button
+              type="button"
+              id="filterBtnV3"
+              onclick="setVersionFilter('V3')"
+              class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-all"
+            >
+              V3 BPBS (<span id="countFilterV3">0</span>)
             </button>
           </div>
 
@@ -727,7 +735,8 @@
       const btnAll = document.getElementById('filterBtnAll');
       const btnV1 = document.getElementById('filterBtnV1');
       const btnV2 = document.getElementById('filterBtnV2');
-      if (!btnAll || !btnV1 || !btnV2) return;
+      const btnV3 = document.getElementById('filterBtnV3');
+      if (!btnAll || !btnV1 || !btnV2 || !btnV3) return;
 
       const activeClass = 'px-2.5 py-1 rounded-md font-semibold text-brand-800 bg-white shadow-xs transition-all';
       const inactiveClass = 'px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition-all';
@@ -735,6 +744,7 @@
       btnAll.className = currentVersionFilter === 'ALL' ? activeClass : inactiveClass;
       btnV1.className = currentVersionFilter === 'V1' ? activeClass : inactiveClass;
       btnV2.className = currentVersionFilter === 'V2' ? activeClass : inactiveClass;
+      btnV3.className = currentVersionFilter === 'V3' ? activeClass : inactiveClass;
     }
 
     function handleSearch() {
@@ -749,6 +759,7 @@
         const rowVersion = (row.versi || '').toUpperCase();
         if (currentVersionFilter === 'V1' && !rowVersion.includes('V1')) return false;
         if (currentVersionFilter === 'V2' && !rowVersion.includes('V2')) return false;
+        if (currentVersionFilter === 'V3' && !rowVersion.includes('V3')) return false;
 
         // Filter search keyword
         if (q) {
@@ -780,10 +791,13 @@
         const item = document.createElement('div');
         item.className = 'flex items-center justify-between text-xs bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg';
         
+        const isV3 = (row.versi || '').toUpperCase().includes('V3');
         const isV2 = (row.versi || '').toUpperCase().includes('V2');
-        const vBadge = isV2
-          ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">V2 BPBS</span>`
-          : `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wider">V1 STANDAR</span>`;
+        const vBadge = isV3
+          ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-300 uppercase tracking-wider">V3 BPBS</span>`
+          : (isV2
+            ? `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 border border-purple-200 uppercase tracking-wider">V2 BPBS</span>`
+            : `<span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200 uppercase tracking-wider">V1 STANDAR</span>`);
 
         item.innerHTML = `
           <div class="flex items-center space-x-2 truncate">
@@ -842,10 +856,13 @@
         tr.className = idx % 2 === 0 ? 'bg-white hover:bg-slate-50/80 transition-colors' : 'bg-slate-50/40 hover:bg-slate-50 transition-colors';
 
         const tarifFormatted = row.tarif ? `${row.tarif}%` : '0%';
+        const isV3 = (row.versi || '').toUpperCase().includes('V3');
         const isV2 = (row.versi || '').toUpperCase().includes('V2');
-        const versiBadge = isV2
-          ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">V2 (BPBS)</span>`
-          : `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">V1 (Standar)</span>`;
+        const versiBadge = isV3
+          ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300">V3 (BPBS)</span>`
+          : (isV2
+            ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">V2 (BPBS)</span>`
+            : `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700 border border-brand-200">V1 (Standar)</span>`);
 
         tr.innerHTML = `
           <td class="py-2.5 px-3 border-r border-slate-200 text-center text-slate-500 tabular-nums font-mono text-[11px]">${idx + 1}</td>
@@ -907,6 +924,7 @@
       const countAll = totalDoc;
       const countV1 = extractedRows.filter(r => (r.versi || '').toUpperCase().includes('V1')).length;
       const countV2 = extractedRows.filter(r => (r.versi || '').toUpperCase().includes('V2')).length;
+      const countV3 = extractedRows.filter(r => (r.versi || '').toUpperCase().includes('V3')).length;
       const totalDPP = extractedRows.reduce((acc, cur) => acc + (Number(cur.dpp) || 0), 0);
       const totalPPh = extractedRows.reduce((acc, cur) => acc + (Number(cur['pajak penghasilan']) || 0), 0);
       const masaPajakFirst = extractedRows[0]?.['Masa Pajak'] || '-';
@@ -930,6 +948,8 @@
       if (filterV1El) filterV1El.textContent = countV1;
       const filterV2El = document.getElementById('countFilterV2');
       if (filterV2El) filterV2El.textContent = countV2;
+      const filterV3El = document.getElementById('countFilterV3');
+      if (filterV3El) filterV3El.textContent = countV3;
 
       const statBreakdownEl = document.getElementById('statVersiBreakdown');
       if (statBreakdownEl) {
@@ -938,6 +958,8 @@
             <span class="inline-block w-2 h-2 rounded-full bg-teal-500"></span>V1: <strong>${countV1}</strong>
             &bull;
             <span class="inline-block w-2 h-2 rounded-full bg-purple-500"></span>V2: <strong>${countV2}</strong>
+            &bull;
+            <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>V3: <strong>${countV3}</strong>
           </span>
         `;
       }

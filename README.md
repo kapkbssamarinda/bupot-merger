@@ -1,4 +1,4 @@
-# Web-App Merger Bukti Potong PPh (Dual-Versi: V1 Standar & V2 BPBS)
+# Web-App Merger Bukti Potong PPh (Multi-Versi: V1 Standar, V2 BPBS, & V3 BPBS)
 
 Aplikasi web untuk mengekstrak, mendeteksi otomatis versi, dan menggabungkan data Bukti Pemotongan/Pemungutan PPh dari file PDF ke dalam format Excel (.xlsx) siap pakai berumus.
 
@@ -6,10 +6,11 @@ Aplikasi web untuk mengekstrak, mendeteksi otomatis versi, dan menggabungkan dat
 
 - **Deteksi Otomatis Format / Versi Bukti Potong:**
   - **Versi 1 (V1 - BPPU Standar):** Bukti Pemotongan/Pemungutan PPh Unifikasi Berformat Standar DJP.
-  - **Versi 2 (V2 - BPBS):** Formulir BPBS PPh Pasal 4 Ayat (2), Pasal 15, Pasal 22, dan Pasal 23.
+  - **Versi 2 (V2 - BPBS):** Formulir BPBS PPh Pasal 4 Ayat (2), Pasal 15, Pasal 22, dan Pasal 23 (Format 15 digit angka terpisah spasi).
+  - **Versi 3 (V3 - BPBS Baru / NITKU):** Formulir BPBS PPh dengan penambahan field NITKU dan format NPWP Ganda (15 digit lama / 16 digit baru/NITKU).
 
 - **Ekstraksi Otomatis 16 Kolom Terkonsolidasi (Header Excel CAPSLOCK):**
-  1. `VERSI` (Identifikasi otomatis V1 Standar / V2 BPBS)
+  1. `VERSI` (Identifikasi otomatis V1 Standar / V2 BPBS / V3 BPBS)
   2. `NOMOR BUPOT` (Nomor Bukti Potong)
   3. `MASA PAJAK`
   4. `SIFAT PAJAK PENGHASILAN` (Final / Tidak Final)
@@ -22,13 +23,13 @@ Aplikasi web untuk mengekstrak, mendeteksi otomatis versi, dan menggabungkan dat
   11. `PPH DIPOTONG` (Pajak Penghasilan Terpotong)
   12. `TANGGAL DOKUMEN`
   13. `NOMOR DOKUMEN`
-  14. `NPWP PEMOTONG` (Identitas Pemotong/Pemungut PPh)
-  15. `NAMA PEMOTONG` (Nama Badan/Wajib Pajak Pemotong)
-  16. `TANGGAL PEMOTONGAN`
+  14. `NPWP PEMOTONG` (Identitas Pemotong/Pemungut PPh: V1 16-digit, V2 15-digit, V3 15-digit pertama sebelum `/`)
+  15. `NAMA PEMOTONG` (Nama Pemotong: V1 C.3, V2 C.2, V3 C.3)
+  16. `TANGGAL PEMOTONGAN` (V1 C.4 teks bulan, V2 C.3 dd-mm-yyyy, V3 C.4 dd-mm-yyyy)
 
 - **Filter Interaktif & Multi-Upload:**
-  - Tombol filter cepat untuk menyaring tampilan: **Semua**, **V1 Standar**, atau **V2 BPBS**.
-  - Area **Drag & Drop** dan tombol **"Tambah Dokumen PDF"** untuk memproses banyak file PDF sekaligus.
+  - Tombol filter cepat untuk menyaring tampilan: **Semua**, **V1 Standar**, **V2 BPBS**, atau **V3 BPBS**.
+  - Area **Drag & Drop** dan tombol **"Pilih Berkas PDF"** untuk memproses banyak file PDF sekaligus.
 
 - **Antarmuka Anti-AI Slop & Tema Terang (Light Theme):**
   - Desain editorial finansial profesional (bersih, kontras tinggi ≥ 7:1).

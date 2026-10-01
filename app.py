@@ -76,6 +76,7 @@ def parse_bupot_text(text, source_name=""):
     Ekstraksi data bukti potong dari teks PDF dengan deteksi otomatis versi:
     - V1 (Standar): Format DJP BPPU Unifikasi Berformat Standar
     - V2 (BPBS): Formulir BPBS PPh Pasal 4(2), 15, 22, dan 23
+    - V3 (BPBS): Formulir BPBS Format Baru 16 Digit/NITKU (NPWP 15-digit terpisah, C.3 Nama, C.4 Tanggal)
 
     Kolom target utama:
     - NPWP PEMOTONG
@@ -85,10 +86,12 @@ def parse_bupot_text(text, source_name=""):
     - PPH DIPOTONG
     - NOMOR BUPOT
     """
-    is_v2 = ('FORMULIR BPBS' in text) or ('H.1 NOMOR' in text)
+    is_bpbs = ('FORMULIR BPBS' in text) or ('H.1 NOMOR' in text)
 
-    if is_v2:
-        version = 'V2 (BPBS)'
+    if is_bpbs:
+        # Deteksi versi: V3 jika terdapat NITKU atau format NPWP ganda dengan '/' di C.1
+        is_v3 = ('NITKU' in text) or bool(re.search(r'C\.1\s*[:\s]*NPWP[^\n\r]*\/', text))
+        version = 'V3 (BPBS)' if is_v3 else 'V2 (BPBS)'
 
         # 1. Nomor Bupot: H.1 NOMOR : 2 0 0 0 0 1 3 5 6 5
         m_no = re.search(r'H\.1\s+NOMOR\s*:\s*([0-9\s]+?)(?=\s*H\.[0-9]|\n|$)', text)
@@ -156,16 +159,20 @@ def parse_bupot_text(text, source_name=""):
         m_tgldok = re.search(r'B\.7\s+Dokumen\s+Referensi[\s\S]*?Tanggal\s*[:\s]\s*([0-9\s]+dd[0-9\s]+mm[0-9\s]+yyyy|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
         tgl_dokumen = parse_v2_date(m_tgldok.group(1)) if m_tgldok else ''
 
-        # 8. NPWP Pemotong (C.1)
-        m_npwp = re.search(r'C\.1\s+NPWP\s*:\s*([0-9\s]+?)(?=\s*C\.[0-9]|\n|$)', text)
-        npwp = re.sub(r'\s+', '', m_npwp.group(1)) if m_npwp else ''
+        # 8. NPWP Pemotong (C.1) - Ambil 15 digit pertama saja (sebelum '/' jika format baru)
+        m_npwp = re.search(r'C\.1\s*[:\s]*NPWP\s*[:\s]*([^\n\r]+)', text)
+        if m_npwp:
+            raw_npwp = m_npwp.group(1).split('/')[0]
+            npwp = re.sub(r'\D', '', raw_npwp)[:15]
+        else:
+            npwp = ''
 
-        # 9. Nama Pemotong (C.2)
-        m_nama = re.search(r'C\.2\s+Nama\s+(?:Wajib\s+Pajak|Pemotong)[^\n:]*:\s*([^\n\r]+)', text)
+        # 9. Nama Pemotong (C.2 pada V2 atau C.3 pada V3)
+        m_nama = re.search(r'C\.[0-9]\s+Nama\s+(?:Wajib\s+Pajak|Pemotong)[^\n:]*:\s*([^\n\r]+)', text)
         nama_pemotong = m_nama.group(1).strip() if m_nama else ''
 
-        # 10. Tanggal Pemotongan (C.3)
-        m_tglpotong = re.search(r'C\.3\s+Tanggal\s*:\s*([0-9\s]+dd[0-9\s]+mm[0-9\s]+yyyy|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4}|[^\n\r]+)', text)
+        # 10. Tanggal Pemotongan (C.3 pada V2 atau C.4 pada V3)
+        m_tglpotong = re.search(r'C\.[0-9]\s+Tanggal\s*:\s*([0-9\s]+dd[0-9\s]+mm[0-9\s]+yyyy|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4}|[^\n\r]+)', text)
         tgl_pemotongan = parse_v2_date(m_tglpotong.group(1)) if m_tglpotong else ''
 
     else:
