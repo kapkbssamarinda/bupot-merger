@@ -1,14 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/extract-upload",
-      "destination": "/api/index.py?__route__=/api/extract-upload"
-    },
-    {
-      "source": "/api/export-excel",
-      "destination": "/api/index.py?__route__=/api/export-excel"
-    },
-    {
       "source": "/(.*)",
       "destination": "/api/index.py?__route__=/$1"
     }

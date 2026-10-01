@@ -8,12 +8,7 @@ import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-template_dir = os.path.join(BASE_DIR, 'templates')
-if not os.path.isdir(template_dir):
-    template_dir = os.path.join(os.path.dirname(BASE_DIR), 'templates')
-
-app = Flask(__name__, template_folder=template_dir)
+app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload
 
 MONTH_MAP = {
@@ -101,31 +96,18 @@ def format_short_date(val):
         return d_obj.strftime('%d/%m/%Y')
     return str(val).strip() if val else ''
 
-def parse_v2_date(date_str):
-    return format_short_date(date_str)
-
 def parse_id_number(val, is_rate=False):
     if not val:
         return 0.0
-    val_str = str(val).strip()
+    s = str(val).strip()
     if is_rate:
-        val_clean = val_str.replace(',', '.')
-        try:
-            return float(val_clean)
-        except ValueError:
-            return 0.0
-    if ',' in val_str:
-        val_clean = val_str.replace('.', '').replace(',', '.')
-    else:
-        parts = val_str.split('.')
-        if len(parts) > 2:
-            val_clean = val_str.replace('.', '')
-        elif len(parts) == 2 and len(parts[1]) == 3:
-            val_clean = val_str.replace('.', '')
-        else:
-            val_clean = val_str
+        s = s.replace(',', '.')
+    elif ',' in s:
+        s = s.replace('.', '').replace(',', '.')
+    elif s.count('.') > 1 or (s.count('.') == 1 and len(s.rsplit('.', 1)[1]) == 3):
+        s = s.replace('.', '')
     try:
-        return float(val_clean)
+        return float(s)
     except ValueError:
         return 0.0
 
@@ -156,11 +138,7 @@ def parse_bupot_text(text, source_name=""):
         nomor = re.sub(r'\s+', '', m_no.group(1)) if m_no else ''
 
         # 2. Sifat Pajak: H.4 PPh Final vs H.5 X PPh Tidak Final
-        sifat = 'TIDAK FINAL'
-        if re.search(r'H\.4\s*[XxVv]\s*PPh\s*Final', text) or re.search(r'H\.4\s*\[[XxVv]\]\s*PPh\s*Final', text):
-            sifat = 'FINAL'
-        elif re.search(r'H\.5\s*[XxVv]\s*PPh\s*Tidak\s*Final', text) or re.search(r'H\.5\s*\[[XxVv]\]\s*PPh\s*Tidak\s*Final', text):
-            sifat = 'TIDAK FINAL'
+        sifat = 'FINAL' if re.search(r'H\.4\s*\[?[XxVv]\]?\s*PPh\s*Final', text) else 'TIDAK FINAL'
 
         # 3. Status: H.2 Pembetulan Ke- 0
         m_stat = re.search(r'H\.2\s+Pembetulan\s+Ke-\s*(\d+)', text, re.IGNORECASE)
@@ -215,7 +193,7 @@ def parse_bupot_text(text, source_name=""):
         no_dokumen = m_dok.group(1).strip() if m_dok else ''
 
         m_tgldok = re.search(r'B\.7\s+Dokumen\s+Referensi[\s\S]*?Tanggal\s*[:\s]\s*([0-9\s]+dd[0-9\s]+mm[0-9\s]+yyyy|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4})', text)
-        tgl_dokumen = parse_v2_date(m_tgldok.group(1)) if m_tgldok else ''
+        tgl_dokumen = format_short_date(m_tgldok.group(1)) if m_tgldok else ''
 
         # 8. NPWP Pemotong (C.1) - Ambil 15 digit pertama saja (sebelum '/' jika format baru)
         m_npwp = re.search(r'C\.1\s*[:\s]*NPWP\s*[:\s]*([^\n\r]+)', text)
@@ -231,7 +209,7 @@ def parse_bupot_text(text, source_name=""):
 
         # 10. Tanggal Pemotongan (C.3 pada V2 atau C.4 pada V3)
         m_tglpotong = re.search(r'C\.[0-9]\s+Tanggal\s*:\s*([0-9\s]+dd[0-9\s]+mm[0-9\s]+yyyy|[0-9]{1,2}\s+[A-Za-z]+\s+[0-9]{4}|[^\n\r]+)', text)
-        tgl_pemotongan = parse_v2_date(m_tglpotong.group(1)) if m_tglpotong else ''
+        tgl_pemotongan = format_short_date(m_tglpotong.group(1)) if m_tglpotong else ''
 
     else:
         version = 'V1 (Standar)'
@@ -311,43 +289,38 @@ def parse_bupot_text(text, source_name=""):
         'tanggal pemotongan': tgl_pemotongan
     }
 
+DEFAULT_ROW = {
+    'file_source': '', 'versi': '', 'Nomor': '', 'Masa Pajak': '',
+    'Sifat Pajak Penghasilan': '', 'Status': '', 'jenis pph': '',
+    'kode objek pajak': '', 'objek pajak': '', 'dpp': 0.0, 'tarif': 0.0,
+    'pajak penghasilan': 0.0, 'tanggal dokumen': '', 'nomor dokumen': '',
+    'npwp': '', 'nama pemotong': '', 'tanggal pemotongan': ''
+}
+
 def extract_pdf_file(file_bytes_or_path, filename=""):
     try:
         with pdfplumber.open(file_bytes_or_path) as pdf:
             full_text = "\n".join([page.extract_text() or "" for page in pdf.pages])
         return parse_bupot_text(full_text, source_name=filename)
     except Exception as e:
-        return {
+        row = DEFAULT_ROW.copy()
+        row.update({
             'file_source': filename,
             'versi': 'Tidak Dikenal',
-            'error': str(e),
-            'Nomor': '',
-            'Masa Pajak': '',
-            'Sifat Pajak Penghasilan': '',
             'Status': 'GAGAL',
-            'jenis pph': '',
-            'kode objek pajak': '',
             'objek pajak': f'Gagal membaca file: {e}',
-            'dpp': 0.0,
-            'tarif': 0.0,
-            'pajak penghasilan': 0.0,
-            'tanggal dokumen': '',
-            'nomor dokumen': '',
-            'npwp': '',
-            'nama pemotong': '',
-            'tanggal pemotongan': ''
-        }
+            'error': str(e)
+        })
+        return row
 
 @app.route('/')
-@app.route('/api')
-@app.route('/api/index')
-@app.route('/api/index.py')
 def index():
     return render_template('index.html')
 
 import urllib.parse
 
 class VercelPathMiddleware:
+    """Normalisasi PATH_INFO untuk deployment serverless Vercel."""
     def __init__(self, wsgi_app):
         self.wsgi_app = wsgi_app
 
@@ -355,20 +328,9 @@ class VercelPathMiddleware:
         qs = environ.get('QUERY_STRING', '')
         if '__route__' in qs:
             params = urllib.parse.parse_qs(qs)
-            if '__route__' in params and params['__route__']:
-                route = params['__route__'][0]
-                if not route.startswith('/'):
-                    route = '/' + route
-                environ['PATH_INFO'] = route
-                # Bersihkan parameter __route__ dari QUERY_STRING
-                filtered = [(k, v) for k, vs in params.items() if k != '__route__' for v in vs]
-                environ['QUERY_STRING'] = urllib.parse.urlencode(filtered)
-        else:
-            path = environ.get('PATH_INFO', '')
-            if path in ('/api/index.py', '/api/index', '/api', ''):
-                environ['PATH_INFO'] = '/'
-            elif path.startswith('/api/index.py/'):
-                environ['PATH_INFO'] = path[len('/api/index.py'):]
+            route = params.pop('__route__', ['/'])[0]
+            environ['PATH_INFO'] = route if route.startswith('/') else '/' + route
+            environ['QUERY_STRING'] = urllib.parse.urlencode([(k, v) for k, vs in params.items() for v in vs])
         return self.wsgi_app(environ, start_response)
 
 app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
@@ -425,6 +387,7 @@ def export_excel():
     ]
 
     header_font = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+    data_font = Font(name="Calibri", size=10)
     header_fill = PatternFill(start_color="0F766E", end_color="0F766E", fill_type="solid")
     center_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
     left_align = Alignment(horizontal="left", vertical="center")
@@ -468,11 +431,11 @@ def export_excel():
             float(item.get("dpp", 0.0) or 0.0),
             float(item.get("tarif", 0.0) or 0.0),
             float(item.get("pajak penghasilan", 0.0) or 0.0),
-            tgl_dok_obj if tgl_dok_obj else (format_short_date(tgl_dok_raw) or ""),
+            tgl_dok_obj or (str(tgl_dok_raw).strip() if tgl_dok_raw else ""),
             str(item.get("nomor dokumen", "")),
             str(item.get("npwp", "")),
             str(item.get("nama pemotong", "")),
-            tgl_potong_obj if tgl_potong_obj else (format_short_date(tgl_potong_raw) or "")
+            tgl_potong_obj or (str(tgl_potong_raw).strip() if tgl_potong_raw else "")
         ]
         ws.append(row_values)
         current_row = ws.max_row
@@ -481,7 +444,7 @@ def export_excel():
         for col_idx in range(1, len(headers) + 1):
             cell = ws.cell(row=current_row, column=col_idx)
             cell.border = thin_border
-            cell.font = Font(name="Calibri", size=10)
+            cell.font = data_font
 
             # Formatting khusus
             if col_idx in [12, 16]:  # TGL DOKUMEN & TGL PEMOTONGAN (Short Date: dd/mm/yyyy)
